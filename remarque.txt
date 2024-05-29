@@ -1,0 +1,6 @@
+GPS : 
+    deux methode pour le gps 
+    1- verifier la connexion .
+    2- retourner la position .
+
+    
