@@ -1,107 +1,139 @@
-import math
-import sqlite3 as sqlite 
-from gps import main 
+import math 
+import sqlite3 as sqlite  
+ 
+ 
+data  = {"direction" : None , "station_count" : 0}
+ 
+ 
+class Station : 
+     
+    def init (self,nom,position) : 
+        self.nom = nom  
+        self.position = position  
+         
+def distance_between_position(pos1,pos2): 
+        
+    lat1, lon1 =  pos1
+    lat2, lon2  = pos2
+        
+    R = 6371  # Rayon de la Terre en kilomètres 
+    dLat = math.radians(lat2 - lat1) 
+    dLon = math.radians(lon2 - lon1) 
+    a = math.sin(dLat / 2) * math.sin(dLat / 2) + \
+    math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+    math.sin(dLon / 2) * math.sin(dLon / 2) 
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)) 
+    return abs(round(R * c * 1000))  # Distance en mètres       
+ 
 
-
-class Station :
+class DataBaseStation : 
+     
+    def __init__(self) : 
+        self.connection = sqlite.connect('./stations.db') 
+        self.cursor = self.connection.cursor() 
+     
+    def getStations (self,direction) :  
+         
+        """" 
+        direction : represent if going or outgoing  
+         
+         
+        """ 
+         
+         
+        # self.cursor.execute(""" 
+                             
+        #                     SELECT  * 
+        #                     FROM direction1 AS d1  
+                             
+        #                     """ 
+        #                     ) 
+         
+    def first_station (self) : 
+         
+        self.cursor.execute(""" 
+                             
+            SELECT  *  
+            FROM direction1  
+            LIMIT 1 ; 
+            """) 
+        data = self.cursor.fetchall()
+        for row in data :   
+            return    # return the lat,en of the first station  
+     
+    def last_station (self) : 
+         
+        self.cursor.execute("""                     
+            SELECT  *  
+            FROM direction2   
+            LIMIT 1 ; 
+            """) 
+        data = self.cursor.fetchall()
+        for row in data :   
+            return row   # return the lat, long of the last station  
     
-    def __init__ (self,nom,position) :
-        self.nom = nom 
-        self.position = position 
-        
-    def distance_between_position(self,my_pos):
-        
-        lat1, lon1 =  my_pos
-        lat2, lon2  = self.position 
-        
-        R = 6371  # Rayon de la Terre en kilomètres
-        dLat = math.radians(lat2 - lat1)
-        dLon = math.radians(lon2 - lon1)
-        a = math.sin(dLat / 2) * math.sin(dLat / 2) + \
-            math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
-            math.sin(dLon / 2) * math.sin(dLon / 2)
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        return abs(round(R * c * 1000))  # Distance en mètres      
 
+     
+    def next_station (self, current_pos, direction = 'going') : 
         
-class DataBaseStation :
-    
-    def __init__(self) :
-        self.connection = sqlite.connect('./stations.db')
-        self.cursor = self.connection.cursor()
-    
-    def getStations (self,direction) : 
-        
-        """"
-        direction : represent if going or outgoing 
-        
-        
-        """
-        
-        
-        self.cursor.execute("""
-                            
-                            SELECT  *
-                            FROM direction1 AS d1 
-                            
-                            """
-                            )
-        
-    def first_station (self) :
-        
-        self.cursor.execute("""
-                            
-            SELECT  * 
-            FROM directions1 
-            LIMIT 1 ;
-            """)
-        
-    def last_station (self) :
-        
-        self.cursor.execute("""                    
-            SELECT  * 
-            FROM direction2  
-            LIMIT 1 ;
-            """)
-    
-    
-    def near_station (self,position ) :
-        pass
-
-
-def getPosition () :
-    try  :     
-        if __name__ == '__main__' :
-            lon , lat = main() 
-            return lon , lat           
-    except Exception :
-        return -1 # Don't do tracking anymore .
-
-
-    
-def track () :
-
-    pos  = getPosition () # check if the position can get 
-
-
-    if pos != -1 :
-          
-        ds = DataBaseStation()            
-                
-        near_station = ds.near_station()
-       
-        while True: # to indicate that this operatin is repeated 
+        if direction == 'going': 
             
-            distance = near_station.distance_between_position(pos)
-                
-            if ( distance > 100 ) :
-                return {"state" : 1 , "message" : "next station  is {near_station.name}" }
-                
-            elif( distance < 50 ) :
-                print(f"We'll be arriving soon at station {near_station.name}")
-            
-            elif ( distance < 25 ) :
-                print(f" we are in  station {near_station.name}")        
+            sql = """
+            SELECT *
+            FROM direction1
+            WHERE lat >= ? OR lang >= ?
+            ORDER BY lat, lang
+            LIMIT 1;
+            """
 
-db = DataBaseStation ()
-db.first_station()                
+            self.cursor.execute(sql, (current_pos[0], current_pos[1]))   # the first parameter is latitudew and the second one is the longtitude .
+            
+            data = self.cursor.fetchall() 
+            print(data) 
+    
+    def close (self) : 
+        self.connection.close()      
+         
+     
+def track (pos) : 
+        
+               
+        db = DataBaseStation()             
+        pos_first = db.first_station ()  
+        pos_last = db.last_station ()      
+           
+        distance_pos_first = distance_between_position(pos,pos_first)
+        distance_pos_last = distance_between_position(pos,pos_last)
+        
+        if data['direction'] == None :
+            
+            if distance_pos_first < 50 :
+                data['direction'] = "going"
+                return db.first_station()
+                
+            elif distance_pos_last < 50 :
+                data['direction'] = "returning"
+                return db.last_station() 
+            else :
+                return "no station found" 
+            
+            
+        elif data ['direction'] == 'going' or  data ['direction'] == 'returning' : 
+            
+            next_station = db.next_station(pos,data['direction'])
+            distance = distance_between_position(pos, (next_station[3],next_station[4]) )
+                
+        if ( distance > 100 ) : 
+            return {"state" : 1 , "message" : "next station  is {near_station.name}"}                  
+        elif( distance < 50 ) : 
+            print(f"We'll be arriving soon at station {near_station.name}") 
+            return {"state" : 2 , "message" : "next station  is {near_station.name}" }
+            
+        elif ( distance < 25 ) : 
+            print(f" we are in  station {near_station.name}")  
+            {"state" : 3 , "message" : "next station  is {near_station.name}" }       
+ 
+db = DataBaseStation () 
+# db.next_station((36.3327333,6.6165))
+res = db.last_station()
+print(res)

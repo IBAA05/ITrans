@@ -3,7 +3,7 @@ import time
 import asyncio
 import websockets
 import json
-
+from track import track 
 
 def initialize_serial():
     try:
@@ -42,9 +42,9 @@ def parse_gps_data(data):
         return lat, lon
     return None, None
 
-async def send_gps_data_to_server(lat, lon):
+async def send_gps_data_to_server(lat, lon,res):
     async with websockets.connect('ws://localhost:8080') as websocket:
-        data = {'latitude': lat, 'longitude': lon}
+        data = {'latitude': lat, 'longitude': lon,"nameEN" : res[1],"nameFR" : res[0]}
         await websocket.send(json.dumps(data))
         print(f'Sent GPS data to server: {data}')
         response = await websocket.recv()
@@ -86,12 +86,12 @@ async def main():
             lat, lon = parse_gps_data(line)
             if lat and lon:
                 print(f'Latitude: {lat}, Longitude: {lon}')
-                await send_gps_data_to_server(lat, lon)
+                res = track((lat,lon))  
+                await send_gps_data_to_server(lat, lon,res)
             else:
                 print('Failed to parse GPS data')
     
     ser.close()
-    return lat , lon 
 
 if __name__ == '__main__':
     asyncio.run(main())
