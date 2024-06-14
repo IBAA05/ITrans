@@ -21,3 +21,10 @@ ws.on('close', () => {
 ws.on('error', (error) => {
     console.error('WebSocket error:', error);
 });
+// """
+// SELECT * FROM direction1
+
+// where nameEN = ? 
+//     LIMIT 1 
+// OFFSET 1
+// """

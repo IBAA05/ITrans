@@ -40,8 +40,8 @@ wss.on('connection', (socket) => {
 
 
 module.exports = function handleUpgrade(request, socket, head) {
-    console.log('de')
-    const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+
+  const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
 
     if (pathname === '/ws') {
         console.log('Upgrading to WebSocket');
