@@ -3,7 +3,6 @@ import time
 import asyncio
 import websockets
 import json
-from track import track 
 
 def initialize_serial():
     try:
@@ -17,7 +16,8 @@ def initialize_serial():
 
 def send_at_command(ser, command):
     
-    try:
+    try :
+
         ser.write((command + '\r\n').encode())
         time.sleep(0.5)  # Delay to allow for response
         reply = []
@@ -55,12 +55,12 @@ def getPosition (ser) :
     send_at_command(ser, 'AT+CGNSPWR=1')
     send_at_command(ser, 'AT+CGNSINF')
     
-    
 async def main():
     ser = initialize_serial()
     if ser is None:
         return
-
+  
+    
     # Check basic AT command response
     response = send_at_command(ser, 'AT')
     print('AT Command Response:', response)
