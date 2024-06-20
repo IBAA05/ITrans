@@ -5,7 +5,8 @@ const server = require('./server'); // Ensure this points to the correct path
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on('connection', (socket) => {
-
+  
+  // verify the client 
   console.log('Client connected');
 
   // Send latitude and longitude to the client upon connection
@@ -13,10 +14,9 @@ wss.on('connection', (socket) => {
   const initialLongitude = 11.0;
   const initialData = JSON.stringify({ latitude: initialLatitude, longitude: initialLongitude });
   
-  console.log(typeof initialData);
   socket.send(initialData, err => {
 
-    if (err) {
+    if (err) { 
       console.log("cannot send the data to the client");
     } else { 
       console.log(`Sent: latitude = ${initialLatitude}, longitude = ${initialLongitude}`);  
@@ -27,7 +27,8 @@ wss.on('connection', (socket) => {
   socket.on('message', (data) => {
      console.log('Received from client:', data.toString());
 
-    try {
+    try { //distribute the informations . 
+
       // const { latitude, longitude } = JSON.parse(data);
       // console.log(`Received: latitude = ${latitude}, longitude = ${longitude}`);
   
@@ -38,7 +39,9 @@ wss.on('connection', (socket) => {
 
         console.log('Station detected');
         socket.send(JSON.stringify({ status: 'success', message: 'Station detected', station }));
-       }else{
+      
+      } else {
+        
         console.log('Station not found');
         socket.send(JSON.stringify({ status: 'error', message: 'Station not found' }));
      
@@ -63,6 +66,7 @@ module.exports = function handleUpgrade(request, socket, head) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request);
     });
+
   } else {
     socket.destroy();
   }

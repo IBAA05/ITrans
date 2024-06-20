@@ -4,7 +4,7 @@ import websockets
 from getData import SIM_Manager 
 
 class Controller:
-    
+
     def __init__(self):
         self.manager = SIM_Manager()
 
@@ -15,6 +15,7 @@ class Controller:
             print(f'Sent GPS data to server: {data}')
             response = await websocket.recv()
             print(f'Received response from server: {response}')
+            
     async def main(self):
         if not self.manager.initialize_serial():
             return
@@ -23,12 +24,12 @@ class Controller:
         if lat and lon:
             print(f'Latitude: {lat}, Longitude: {lon}')
             #res = track((lat, lon))
-           # await self.send_gps_data_to_server(lat, lon, res)
+            res = ["def","blad"]
+            await self.send_gps_data_to_server(lat, lon,res)
         else:
             print('Failed to retrieve GPS position')
 
         self.manager.close()
 
-if __name__ == 'main':
-    controller = Controller()
-    asyncio.run(controller.main())
+Controller = Controller()
+asyncio.run(Controller.main())

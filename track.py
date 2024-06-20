@@ -1,9 +1,12 @@
 import math  
 import sqlite3 as sqlite   
-from getData import SIM_Manager  
+
+import sys
+sys.path.append('C:/Users/asus/Desktop/ITrans/gps')  # Adjust path accordingly
+
+from gps.getData import SIM_Manager  
   
-data  = {"direction" : None} 
-  
+direction =  None # the defualt direction . 
   
 class Station :  
       
@@ -79,7 +82,7 @@ class DataBaseStation :
         self.connection.close()       
           
      
-def track (direction = 'airoport') :
+def track () :
     
     """ Track the position of the bus 
        direction  : String represent the direction of the bus we get it from the driver . 
@@ -91,66 +94,39 @@ def track (direction = 'airoport') :
     
     next_station = db.next_station(current_station, direction) 
     
-    while next_station[0] != None : # we arrive at the end of a direction .
-        
-        pos = SIM_Manager().get_gps_position() # get the position . 
-        
-        current_stationPos = current_station[5],current_station[4] # lat and len
-        
-        next_stationPos= next_station[5],next_station [4]  # lat and len 
-        
-        distanceToCurrent = distance_between_position(pos,current_stationPos) # distance from our position to th current or we can say the previous station .
-        distanceTo_Next = distance_between_position(pos,next_stationPos)  # distance between current pos and the next station 
-        
-        if distanceToCurrent < 25 : # we are in the current station . 
-            print("sending state that we are in current station")
+    if direction != None : # the driver gives us the direction . 
+    
+        while next_station != None : # we arrive at the end of a direction .
             
-        elif distanceTo_Next <= 25 : # we arrive at the next station 
-            print("sending state that we are in ztation b")
-            current_station = next_station
-            next_station = db.next_station(current_station,direction)
+            pos = SIM_Manager().get_gps_position() # get the position . 
             
-        else: # we are in in the road . 
-            print("sending state that we are between current and next")
-        
-        
-        
-    # if direction =='airoport':      
-    #     db = DataBaseStation()    
-    #     current_station=db.first_station()          
-    #     pos_first = db.first_station ()   
-    #     pos_last = db.last_station ()       
+            current_stationPos = current_station[5],current_station[4] # lat and len
             
-      
+            next_stationPos= next_station[5],next_station [4]  # lat and len 
             
-    #     if data['direction'] == None : 
+            distanceToCurrent = distance_between_position(pos,current_stationPos) # distance from our position to th current or we can say the previous station .
+            distanceTo_Next = distance_between_position(pos,next_stationPos)  # distance between current pos and the next station 
+            
+            if distanceToCurrent < 25 : # we are in the current station . 
+                print("sending state that we are in current station")
+                return {"state" : 1,"station" : current_station}
                 
-    #         if distance_pos_first < 50 : 
-    #             data['direction'] = "going" 
-    #             return db.first_station() 
-                    
-    #         elif distance_pos_last < 50 : 
-    #             data['direction'] = "returning" 
-    #             return db.last_station()  
-    #         else : 
-    #             return "no station found"  
+            elif distanceTo_Next <= 25 : # we arrive at the next station 
+                print("sending state that we are in ztation b")
+                current_station = next_station
+                next_station = db.next_station(current_station,direction)
+                return {"state" : 1 , "station" : next_station}
                 
-                
-    #     elif data ['direction'] == 'going' or  data ['direction'] == 'returning' :  
-                
-    #         next_station = db.next_station(pos,data['direction']) 
-    #         distance = distance_between_position(pos, (next_station[3],next_station[4]) ) 
-                    
-    #     if ( distance > 100 ) :  
-    #         return {"state" : 1 , "message" : "next station  is {near_station.name}"}                   
-    #     elif( distance < 50 ) :  
-    #         print(f"We'll be arriving soon at station {near_station.name}")  
-    #         return {"state" : 2 , "message" : "nextstation  is {near_station.name}" } 
-                
-    #     elif ( distance < 25 ) :  
-    #         print(f" we are in  station {near_station.name}")   
-    #         {"state" : 3 , "message" : "next station  is {near_station.name}" }        
+            else: # we are in in the road . 
+                print("sending state that we are between current and next")
+                return { "state" : 2 , "station" : next_station } 
+        
+    else : # driver doesnt send any direction 
+        print("def")
+        return {"state" : 0 ,"station" : DataBaseStation().first_station()}        
+        
+   
     
 db = DataBaseStation ()    
 res2 = db.next_station("Airport - New terminal","airport")
-print(db.first_station())
+print(track())

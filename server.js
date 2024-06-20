@@ -3,7 +3,7 @@ const handleUpgrade = require('./websocket')
 const { load_data } = require('./modules/load_database');
 
 app.get('/ws', (req, res) => {
-    res.send('Ready to upgrade to WebSocket');
+    console.log('Ready to upgrade to WebSocket');
 });
 
 

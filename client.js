@@ -6,7 +6,7 @@ ws.on('open', () => {
     console.log('Connected to server');
 
     // Send a test message
-    const message = JSON.stringify({ latitude: 40.7128, longitude: -74.0060 }); // Example coordinates
+    const message = JSON.stringify({ latitude: 40.7128, longitude: -74.0060 ,token : "dfhkjsdfasdhfshdkfhksdkjf"}); // Example coordinates
     ws.send(message);
 });
 
