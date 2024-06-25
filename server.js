@@ -12,5 +12,4 @@ const server = app.listen(3000, _ => {
 })
 
 server.on('upgrade', handleUpgrade);
-
 module.exports = server

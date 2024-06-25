@@ -1,18 +1,12 @@
 import math  
 import sqlite3 as sqlite   
+from config  import STATION_BORDER , INTERSTATION_BORDER
+from datetime import datetime
 
-import sys
-sys.path.append('C:/Users/asus/Desktop/ITrans/gps')  # Adjust path accordingly
 
-from gps.getData import SIM_Manager  
+direction =  None # The default direction . 
   
-direction =  None # the defualt direction . 
-  
-class Station :  
-      
-    def __init__ (self,nom,position) :  
-        self.nom = nom   
-        self.position = position   
+ 
           
 def distance_between_position(pos1,pos2):  
          
@@ -31,33 +25,46 @@ def distance_between_position(pos1,pos2):
  
 class DataBaseStation :  
       
-    def __init__(self) :  
+    def __init__ (self) :  
         self.connection = sqlite.connect('./stations.db')  
         self.cursor = self.connection.cursor()  
        
-    def first_station (self) :  
-          
+    def get_going (self) :      
         self.cursor.execute("""  
                               
             SELECT  *   
             FROM direction1   
-            LIMIT 1 ;  
+             ;  
             """)  
         data = self.cursor.fetchall() 
-        for row in data :    
-            return row    # return the all informations of the first station of a direction .   
+        return data 
       
-    def last_station (self) :  
-          
+    def get_returning(self) :    
         self.cursor.execute("""                      
             SELECT  *   
             FROM direction2    
-            LIMIT 1 ;  
+            ;  
             """)  
         data = self.cursor.fetchall() 
-        for row in data :    
-            return row    # return the all informations of the last  station of a direction .   
+        return data    
     
+    def get_interstation_go (self) :
+        self.cursor.execute("""                      
+            SELECT  *   
+            FROM interstation1  
+            ;  
+            """)  
+        data = self.cursor.fetchall() 
+        return data 
+    
+    def get_interstation_back (self) :
+        self.cursor.execute("""                      
+            SELECT  *   
+            FROM interstation2  
+            ;  
+            """)  
+        data = self.cursor.fetchall() 
+        return data 
     
     def next_station(self, current_station, direction):
         
@@ -75,58 +82,95 @@ class DataBaseStation :
             next_station = self.cursor.fetchone()
             return next_station if next_station else None
         
-        # else:
-        # # Handle other direction  if necessary
-        #     pass
+      
     def close (self) :  
         self.connection.close()       
-          
+  
+ 
+def find_station (pos,stations) : 
+    
+    """ find the nearest station to the pos 
+      Params  :
+         direction : List of tuples represent the stations of a direction .  
+         pos : The position represents (lat,lang) .
+      Return  : 
+         find the station      
+    
+    """   
+        
+    for station in stations : 
+        station_pos = (station[5], station[4]) # lang , lat 
+        distance = distance_between_position(pos,station_pos)
+        if (distance <= STATION_BORDER)  :
+            return station        # we find a station 
+    
+    return None # in case we dont found . 
      
-def track () :
+     
+            
+def find_interstation (pos,interstations) : 
     
-    """ Track the position of the bus 
-       direction  : String represent the direction of the bus we get it from the driver . 
-       
-    """ 
-    db = DataBaseStation()
-   
-    current_station = db.first_station()  # At the begining of a direction 
+    """" find the nearest interstation  to the position . 
+      Params : 
+          pos : the current pos (lat,long)
+          interstation : List of tuples represent the interstations .
+      Return : 
+          find an interstation .        
+    """     
+    for inter in interstations : 
+        inter_pos = (inter[5], inter[4]) # lang , lat 
+        distance = distance_between_position(pos,inter_pos)
+        if (distance <= INTERSTATION_BORDER)  :
+            return inter        # we find a station 
+    return None 
+ 
     
-    next_station = db.next_station(current_station, direction) 
+         
+def track (pos) :
     
-    if direction != None : # the driver gives us the direction . 
+    # pos = SIM_Manager().get_gps_position() # get the position . 
+    db = DataBaseStation ()
     
-        while next_station != None : # we arrive at the end of a direction .
-            
-            pos = SIM_Manager().get_gps_position() # get the position . 
-            
-            current_stationPos = current_station[5],current_station[4] # lat and len
-            
-            next_stationPos= next_station[5],next_station [4]  # lat and len 
-            
-            distanceToCurrent = distance_between_position(pos,current_stationPos) # distance from our position to th current or we can say the previous station .
-            distanceTo_Next = distance_between_position(pos,next_stationPos)  # distance between current pos and the next station 
-            
-            if distanceToCurrent < 25 : # we are in the current station . 
-                print("sending state that we are in current station")
-                return {"state" : 1,"station" : current_station}
-                
-            elif distanceTo_Next <= 25 : # we arrive at the next station 
-                print("sending state that we are in ztation b")
-                current_station = next_station
-                next_station = db.next_station(current_station,direction)
-                return {"state" : 1 , "station" : next_station}
-                
-            else: # we are in in the road . 
-                print("sending state that we are between current and next")
-                return { "state" : 2 , "station" : next_station } 
+
+    if direction == 'going' : 
+        stations = db.get_going () 
+        inter_stations = db.get_interstation_go () 
+    elif direction == 'returning':
+        stations = db.get_returning () 
+        inter_stations = db.get_interstation_back () 
+ 
+
         
-    else : # driver doesnt send any direction 
-        print("def")
-        return {"state" : 0 ,"station" : DataBaseStation().first_station()}        
-        
-   
+    stat_res = find_station(pos,stations) 
+    inter_res = find_interstation(pos,inter_stations) 
     
+    
+    if stat_res != None :
+        return send_message(pos,"station",stat_res[2]) #   res[2] the name of station in english . 
+    elif inter_res != None : 
+        return send_message(pos,"interstation",inter_res[2])
+    else : 
+        return None     
+    
+  
+  
+def send_message(pos,typ,name) : 
+    data = {
+        "token" : "Geolocation" , 
+        "type" : "geolocation" , 
+        "timestamp" : str(datetime.now()),
+        "content " : {
+            "location" : {"lat" : pos[0], "long":pos[1]} ,
+            "position": { "type": typ, "name": name }
+        }
+    }
+    return data 
+        
+        
+        
 db = DataBaseStation ()    
 res2 = db.next_station("Airport - New terminal","airport")
-print(track())
+dt = (db.get_going())
+print(dt[0][5])
+print(find_station( (36.3233358,6.6207302),dt)) 
+print(datetime.now())

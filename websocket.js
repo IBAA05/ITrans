@@ -28,7 +28,7 @@ wss.on('connection', (socket) => {
      console.log('Received from client:', data.toString());
 
     try { //distribute the informations . 
-
+    
       // const { latitude, longitude } = JSON.parse(data);
       // console.log(`Received: latitude = ${latitude}, longitude = ${longitude}`);
   
