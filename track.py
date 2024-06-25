@@ -33,7 +33,7 @@ class DataBaseStation :
         self.cursor.execute("""  
                               
             SELECT  *   
-            FROM direction1   
+            FROM going   
              ;  
             """)  
         data = self.cursor.fetchall() 
@@ -42,7 +42,7 @@ class DataBaseStation :
     def get_returning(self) :    
         self.cursor.execute("""                      
             SELECT  *   
-            FROM direction2    
+            FROM back    
             ;  
             """)  
         data = self.cursor.fetchall() 
@@ -66,21 +66,21 @@ class DataBaseStation :
         data = self.cursor.fetchall() 
         return data 
     
-    def next_station(self, current_station, direction):
+    # def next_station(self, current_station, direction):
         
-        if direction == 'airport':
-            self.cursor.setinputsizes(current_station)
-            self.cursor.execute("""
-                SELECT *
-                FROM direction1
-                WHERE Id = (
-                    SELECT Id + 1
-                    FROM direction1
-                    WHERE nameEN = ?
-                )
-            """, (current_station,))
-            next_station = self.cursor.fetchone()
-            return next_station if next_station else None
+    #     if direction == 'airport':
+    #         self.cursor.setinputsizes(current_station)
+    #         self.cursor.execute("""
+    #             SELECT *
+    #             FROM direction1
+    #             WHERE Id = (
+    #                 SELECT Id + 1
+    #                 FROM direction1
+    #                 WHERE nameEN = ?
+    #             )
+    #         """, (current_station,))
+    #         next_station = self.cursor.fetchone()
+    #         return next_station if next_station else None
         
       
     def close (self) :  
@@ -97,10 +97,11 @@ def find_station (pos,stations) :
          find the station      
     
     """   
-        
     for station in stations : 
-        station_pos = (station[5], station[4]) # lang , lat 
+        station_pos = (station[4], station[5]) # lat , long 
         distance = distance_between_position(pos,station_pos)
+        print(distance)
+        
         if (distance <= STATION_BORDER)  :
             return station        # we find a station 
     
@@ -118,7 +119,7 @@ def find_interstation (pos,interstations) :
           find an interstation .        
     """     
     for inter in interstations : 
-        inter_pos = (inter[5], inter[4]) # lang , lat 
+        inter_pos = (inter[4], inter[5]) # lat , long 
         distance = distance_between_position(pos,inter_pos)
         if (distance <= INTERSTATION_BORDER)  :
             return inter        # we find a station 
@@ -128,32 +129,32 @@ def find_interstation (pos,interstations) :
          
 def track (pos) :
     
-    # pos = SIM_Manager().get_gps_position() # get the position . 
     db = DataBaseStation ()
+    direction = "going"
+    if direction != None : 
+        if direction == 'going' : 
+            stations = db.get_going () 
+            inter_stations = db.get_interstation_go () 
+        elif direction == 'returning':
+            stations = db.get_returning () 
+            inter_stations = db.get_interstation_back () 
     
 
-    if direction == 'going' : 
-        stations = db.get_going () 
-        inter_stations = db.get_interstation_go () 
-    elif direction == 'returning':
-        stations = db.get_returning () 
-        inter_stations = db.get_interstation_back () 
- 
-
+            
+        stat_res = find_station(pos,stations) 
+        print(stat_res)
+        inter_res = find_interstation(pos,inter_stations) 
         
-    stat_res = find_station(pos,stations) 
-    inter_res = find_interstation(pos,inter_stations) 
+        
+        if stat_res != None :
+            return send_message(pos,"station",stat_res[2]) #   res[2] the name of station in english . 
+        elif inter_res != None : 
+            return send_message(pos,"interstation",inter_res[2])
+        else : 
+            return send_message(pos,"unknown","undefined")     
+        
     
     
-    if stat_res != None :
-        return send_message(pos,"station",stat_res[2]) #   res[2] the name of station in english . 
-    elif inter_res != None : 
-        return send_message(pos,"interstation",inter_res[2])
-    else : 
-        return None     
-    
-  
-  
 def send_message(pos,typ,name) : 
     data = {
         "token" : "Geolocation" , 
@@ -165,12 +166,8 @@ def send_message(pos,typ,name) :
         }
     }
     return data 
-        
-        
-        
+            
+            
+            
 db = DataBaseStation ()    
-res2 = db.next_station("Airport - New terminal","airport")
-dt = (db.get_going())
-print(dt[0][5])
-print(find_station( (36.3233358,6.6207302),dt)) 
-print(datetime.now())
+print(track( (36.3537695,6.6122414)))  
