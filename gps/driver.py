@@ -41,6 +41,6 @@ class SIMGPS :
             self.ser.close()
             
 def getGPSInfo():
-    with open('./sim808Config.json','r') as file:
+    with open('./../sim808Config.json','r') as file:
         data = json.load(file)
         return data             

@@ -2,6 +2,8 @@ import math
 import sqlite3 as sqlite   
 from config  import STATION_BORDER , INTERSTATION_BORDER
 from datetime import datetime
+import subprocess
+
 
 
 direction =  None # The default direction . 
@@ -10,9 +12,10 @@ direction =  None # The default direction .
           
 def distance_between_position(pos1,pos2):  
          
-    lat1, lon1 =  pos1 
-    lat2, lon2  = pos2 
-         
+    #lat1, lon1 =  pos1 
+    #lat2, lon2  = pos2 
+    lat1, lon1 = map(float, pos1)
+    lat2, lon2 = map(float, pos2)   
     R = 6371  # Rayon de la Terre en kilomètres  
     dLat = math.radians(lat2 - lat1)  
     dLon = math.radians(lon2 - lon1)  
@@ -140,7 +143,8 @@ def track (pos) :
             inter_stations = db.get_interstation_back () 
     
 
-            
+       
+        
         stat_res = find_station(pos,stations) 
         print(stat_res)
         inter_res = find_interstation(pos,inter_stations) 

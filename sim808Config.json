@@ -1,6 +1,6 @@
 {
     "baudrate" : 9600 , 
-    "port" : "/dev/ttyS0" , 
+    "port" : "/dev/ttyAMA0" , 
     "tx" :  "pin 8" ,
     "rx" :  "pin 10" ,
     "command" : {
