@@ -1,0 +1,6 @@
+{
+    "STATION_BORDER" : 100 , 
+    "INTERSTATION_BORDER" : 50 , 
+    "SERVER_PORT" : 8080 ,
+    "hOST_IP_ADRESS" : "http://41.111.178.14"
+} 

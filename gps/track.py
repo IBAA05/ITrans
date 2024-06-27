@@ -1,15 +1,24 @@
 import math  
 import sqlite3 as sqlite   
-from config  import STATION_BORDER , INTERSTATION_BORDER
 from datetime import datetime
 import subprocess
+import json
+
+# Read the JSON file
+def read_const (): 
+    global STATION_BORDER 
+    global INTERSTATION_BORDER
+    with open('config.json', 'r') as json_file:
+        config = json.load(json_file)
+
+        # fill  the constants
+        STATION_BORDER = config.get("STATION_BORDER")
+        INTERSTATION_BORDER = config.get("INTERSTATION_BORDER")
 
 
 
 direction =  None # The default direction . 
-  
- 
-          
+      
 def distance_between_position(pos1,pos2):  
          
     #lat1, lon1 =  pos1 
@@ -132,8 +141,10 @@ def find_interstation (pos,interstations) :
          
 def track (pos) :
     
+    read_const ()
+     
+    
     db = DataBaseStation ()
-    direction = "going"
     if direction != None : 
         if direction == 'going' : 
             stations = db.get_going () 

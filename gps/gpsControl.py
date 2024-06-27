@@ -60,7 +60,11 @@ class Controller:
         if response['type'] == 'driving' and response['content']['driving_type'] == 'start':
             pass
             # We modify the direction and the line.
-            
+        if response['type'] == "driving" and response['content']['driving_type'] == "calibrate" :
+            pass      
+        if response['type'] == "driving" and response["content"] ["driving_type"] == "finish" :
+            pass  
+                  
     async def main(self):
         js_file_path = '/home/ibaa/Desktop/ITrans/modules/load_database.js'
         result = subprocess.run(['node', js_file_path], capture_output=True, text=True)
@@ -81,3 +85,7 @@ class Controller:
 
 controller = Controller()
 asyncio.run(controller.main())
+
+
+# in case of finish kill the track 
+# in case of calibrate dont send the geolocation type . 
