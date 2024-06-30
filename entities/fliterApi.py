@@ -1,4 +1,6 @@
-from entities import Station , InterStation 
+from entities.Station import Station
+from entities.InterStation import InterStation
+
 
 def filter_station_json(json_stations):
     
@@ -45,7 +47,7 @@ def filter_inter_station_json(json_inter_stations):
         if interstation['fromStation'] < interstation['toStation']:
             going_interstations.append(InterStation(
                 interstation['lat'],
-                interstation['long'],
+                interstation['lng'],
                 interstation['fromStation'],
                 interstation['toStation'],
                 interstation['order']
@@ -53,7 +55,7 @@ def filter_inter_station_json(json_inter_stations):
         else:
             return_interstations.append(InterStation(
                 interstation['lat'],
-                interstation['long'],
+                interstation['lng'],
                 interstation['fromStation'],
                 interstation['toStation'],
                 interstation['order']

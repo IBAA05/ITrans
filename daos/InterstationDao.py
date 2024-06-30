@@ -1,13 +1,14 @@
-from Dao import Dao
+from daos.Dao import Dao
 
 class InterstationDao  (Dao):
     
     def __init__(self) : 
-        super.__init__()
+        super().__init__()
      
     def insert_data (self,table_name,lat, lng, from_station, to_station) :
-        query = f"INSERT INTO {table_name} (lat, long, from_station, to_station) VALUES (?,?,?,?)" 
-        self.cursor.execute(query,lat, lng, from_station, to_station)
+        query = f"INSERT INTO {table_name} (lat, lng, from_station, to_station) VALUES (?,?,?,?)" 
+        self.cursor.execute(query,(lat, lng, from_station, to_station))
+        self.conn.commit()
         
     def get_interstations (self,table_name) :
         self.cursor.execute(f"""                      
@@ -17,3 +18,4 @@ class InterstationDao  (Dao):
             """)  
         data = self.cursor.fetchall() 
         return data     
+    
